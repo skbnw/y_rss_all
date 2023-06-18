@@ -1,28 +1,43 @@
-name: Scrape
+name: Fetch Yahoo News All RSS Feed
 
 on:
   schedule:
-    - cron: "0 8 * * *" # 8 a.m. every day UTC
-  workflow_dispatch:
+    - cron: '0,30 * * * *'  # Run at 0 minutes and 30 minutes
 
 jobs:
-  scrape:
+  fetch-rss:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.9'
-    - run: pip install notebook requests bs4
-    
-    - name: Run scraper
-      run: jupyter execute scrape.ipynb
-    
-    - name: Add and commit	
-      run: |
-        git add .	
-        git config user.name "Automated"	
-        git config user.email "actions@users.noreply.github.com"	
-        git commit -m "Latest data" 	
-    - name: Push	
-      run: git push
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      - name: Fetch Yahoo News RSS feeds
+        run: |
+          current_time=$(date +'%Y%m%d_%H%M')
+          mkdir -p xml_all-files
+          sleep 3
+          curl -o "xml-files/top-picks_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
+          sleep 3
+          curl -o "xml-files/domestic_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/domestic.xml
+          sleep 3
+          curl -o "xml-files/world_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/world.xml
+          sleep 3
+          curl -o "xml-files/business_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/business.xml
+          sleep 3
+          curl -o "xml-files/entertainment_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/entertainment.xml
+          sleep 3
+          curl -o "xml-files/sports_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/sports.xml
+          sleep 3
+          curl -o "xml-files/it_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/it.xml
+          sleep 3
+          curl -o "xml-files/local_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/local.xml
+          sleep 3
+          curl -o "xml-files/top-picks_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
+
+      - name: Commit and push XML files
+        run: |
+          git config user.name "Automated"
+          git config user.email "actions@users.noreply.github.com"
+          git add xml-files/
+          git commit -m "Update XML files"
+          git push
