@@ -32,7 +32,7 @@ jobs:
           sleep 3
           curl -o "xml-files/local_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/local.xml
           sleep 3
-          curl -o "xml-files/top-picks_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
+          curl -o "xml-files/science_${current_time}_$(date +'%H%M').xml" https://news.yahoo.co.jp/rss/topics/science.xml
 
       - name: Commit and push XML files
         run: |
