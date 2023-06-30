@@ -1,4 +1,4 @@
-# y_news_rss_topics_all
+# y_rss_topics_all
 
 This code fetches all of the RSS feeds for news topics. 
 The workflow runs on a schedule, every 0 and 30 minutes.
