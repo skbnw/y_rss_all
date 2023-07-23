@@ -1,0 +1,52 @@
+name: Fetch Yahoo News All RSS Feed
+
+on:
+  schedule:
+    - cron: '15,45 * * * *'  # Run at 15 minutes and 45 minutes every hour
+
+jobs:
+  fetch-rss:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      - name: Fetch Yahoo News RSS feeds
+        run: |
+          current_month=$(date +'%Y%m')
+          current_day_of_week=$(date +'%u') # 1 (Monday) to 7 (Sunday)
+          day_offset=$(( 7 - current_day_of_week ))
+          current_time=$(date -d "$day_offset days" +'%Y%m%d_%H%M')
+          folder_name="xml-files_${current_time}"
+          mkdir -p $folder_name
+          sleep 3
+          curl -o "${folder_name}/top-picks_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
+          sleep 3
+          curl -o "${folder_name}/domestic_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/domestic.xml
+          sleep 3
+          curl -o "${folder_name}/world_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/world.xml
+          sleep 3
+          curl -o "${folder_name}/business_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/business.xml
+          sleep 3
+          curl -o "${folder_name}/entertainment_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/entertainment.xml
+          sleep 3
+          curl -o "${folder_name}/sports_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/sports.xml
+          sleep 3
+          curl -o "${folder_name}/it_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/it.xml
+          sleep 3
+          curl -o "${folder_name}/local_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/local.xml
+          sleep 3
+          curl -o "${folder_name}/science_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/science.xml
+
+      - name: Set Git Config
+        run: |
+          git config user.name "Automated"
+          git config user.email "actions@users.noreply.github.com"
+        working-directory: ${{ github.workspace }}
+        
+      - name: Commit and push XML files
+        run: |
+          git add .
+          git commit -m "Update XML files"
+          git push
+        working-directory: ${{ github.workspace }}
