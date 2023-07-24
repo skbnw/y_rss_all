@@ -17,7 +17,7 @@ jobs:
           current_day_of_week=$(date +'%u') # 1 (Monday) to 7 (Sunday)
           day_offset=$(( 7 - current_day_of_week ))
           current_time=$(date -d "$day_offset days" +'%Y%m%d_%H%M')
-          folder_name="xml-files_${current_time}"
+          folder_name="xml-files_${current_month}"
           mkdir -p $folder_name
           sleep 3
           curl -o "${folder_name}/top-picks_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
