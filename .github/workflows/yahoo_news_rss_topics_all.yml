@@ -2,8 +2,8 @@ name: Fetch Yahoo News All RSS Feed
 
 on:
   schedule:
-    - cron: '0,30 * * * *'  # Run at 0 minutes and 30 minutes
-
+  　- cron: "0 */1 * * *"
+   
 jobs:
   fetch-rss:
     runs-on: ubuntu-latest
