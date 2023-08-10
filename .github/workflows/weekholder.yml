@@ -14,7 +14,7 @@ jobs:
       - name: Fetch Yahoo News RSS feeds
         run: |
           current_month=$(date +'%Y%m')
-          current_week=$(date +'%Y_%W') # 1-51
+          current_week=$(date +'%Y%m_%W') # 1-51
           day_offset=$(( 7 - current_day_of_week ))
           current_time=$(date +'%Y%m%d_%H%M')
           folder_name="xml-files_${current_week}"
