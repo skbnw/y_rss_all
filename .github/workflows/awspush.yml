@@ -1,7 +1,9 @@
 name: AWS S3 Upload New Files
 
-on: push
-
+on:
+  schedule:
+    - cron: '0 */3 * * *' # 3時間おきに実行
+    
 jobs:
   publish:
     runs-on: ubuntu-latest
