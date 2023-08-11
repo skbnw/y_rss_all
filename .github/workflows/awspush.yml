@@ -1,0 +1,22 @@
+name: AWS S3 Sync
+
+on: push
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Publish to AWS S3
+        uses: opspresso/action-s3-sync@master
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "ap-northeast-1"
+          FROM_PATH: "./xml-files_202308_32"
+          DEST_PATH: "s3://xml-topix-all"
+          OPTIONS: "--acl public-read"
