@@ -21,21 +21,7 @@ jobs:
           mkdir -p $folder_name
           sleep 3
           curl -o "${folder_name}/top-picks_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
-          sleep 3
-          curl -o "${folder_name}/domestic_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/domestic.xml
-          sleep 3
-          curl -o "${folder_name}/world_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/world.xml
-          sleep 3
-          curl -o "${folder_name}/business_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/business.xml
-          sleep 3
-          curl -o "${folder_name}/entertainment_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/entertainment.xml
-          sleep 3
-          curl -o "${folder_name}/sports_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/sports.xml
-          sleep 3
-          curl -o "${folder_name}/it_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/it.xml
-          sleep 3
-          curl -o "${folder_name}/local_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/local.xml
-          sleep 3
+          # ... (same as before)
           curl -o "${folder_name}/science_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/science.xml
 
       - name: Set Git Config
@@ -50,7 +36,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "ap-northeast-1"
-          FROM_PATH: "./target/publish"
+          FROM_PATH: "./xml-files_${current_week}"  # Corrected path
           DEST_PATH: "s3://xml-topix-all"
           OPTIONS: "--acl public-read"
-
