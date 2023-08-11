@@ -47,9 +47,10 @@ jobs:
       - name: Publish to AWS S3
         uses: opspresso/action-s3-sync@master
         env:
-          AWS_ACCESS_KEY_ID: ${{ AKIAWWIEUGTRUXUXFP57 }}
-          AWS_SECRET_ACCESS_KEY: ${{ 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 }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "ap-northeast-1"
-          FROM_PATH: "./xml-files"
+          FROM_PATH: "./target/publish"
           DEST_PATH: "s3://xml-topix-all"
           OPTIONS: "--acl public-read"
+
