@@ -2,7 +2,7 @@ name: Fetch Yahoo News to AWS
 
 on:
   schedule:
-    - cron: '15,45 * * * *'  # Run at 15 minutes and 45 minutes every hour
+    - cron: '20,45 * * * *'  # Run at 15 minutes and 45 minutes every hour
 
 jobs:
   fetch-rss:
