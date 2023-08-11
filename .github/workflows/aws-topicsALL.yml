@@ -2,7 +2,7 @@ name: AWS S3 Upload xml Files
 
 on:
   schedule:
-    - cron: '0 */3 * * *' # 3時間おきに実行
+    - cron: '0 */1 * * *' # 1時間おきに実行
     
 jobs:
   publish:
