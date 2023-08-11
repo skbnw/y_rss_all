@@ -2,7 +2,7 @@ name: Fetch Yahoo News All RSS Feed
 
 on:
   schedule:
-    - cron: '15,45 * * * *'  # Run at 15 minutes and 45 minutes every hour
+    - cron: '0,20,40 * * * *'  # Run 3 times every hour
 
 jobs:
   fetch-rss:
