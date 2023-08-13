@@ -1,4 +1,4 @@
-name: Fetch RSS and Upload to AWS S3
+name: Fetch Yahoo News RSS Feed and Upload to AWS S3
 
 on:
   schedule:
@@ -13,28 +13,21 @@ jobs:
       AWS_REGION: "ap-northeast-1"
 
     steps:
-      - name: Fetch Yahoo News RSS feeds
+      # ロンドン時間で現在の日付からyyyymmを動的に設定
+      - name: Extract yyyymm and week number from Current Date in GMT
+        run: |
+          echo "yyyymm=$(date +'%Y%m' --utc)" >> $GITHUB_ENV
+          echo "week_number=$(date +'%U' --utc)" >> $GITHUB_ENV
+
+      # Fetch the RSS feeds and upload directly to S3
+      - name: Fetch Yahoo News RSS feeds and Upload to S3
         run: |
           current_week=$(date +'%Y%m_%W') # 1-51
           current_time=$(date +'%Y%m%d_%H%M')
-          folder_name="xml-files_${current_week}"
-          mkdir -p $folder_name
-          # Fetch the RSS feeds
           for topic in top-picks domestic world business entertainment sports it local science
           do
             sleep 3
-            curl -o "${folder_name}/${topic}_${current_time}.xml" "https://news.yahoo.co.jp/rss/topics/${topic}.xml"
+            curl -o "${topic}_${current_time}.xml" "https://news.yahoo.co.jp/rss/topics/${topic}.xml"
+            aws s3 cp "${topic}_${current_time}.xml" "s3://xml-topix-all/${{ env.yyyymm }}/xml-files_${current_week}/${topic}_${current_time}.xml" --storage-class ONEZONE_IA
+            rm "${topic}_${current_time}.xml" # Optional: remove the file after upload
           done
-
-      # ロンドン時間で現在の日付からyyyymmを動的に設定
-      - name: Extract yyyymm from Current Date in GMT
-        run: echo "yyyymm=$(date +'%Y%m' --utc)" >> $GITHUB_ENV
-
-      # 週の番号を取得
-      - name: Extract week number from Current Date
-        run: echo "week_number=$(date +'%U' --utc)" >> $GITHUB_ENV
-
-      # AWS S3への新しいファイルのアップロード
-      - name: Upload New Files to AWS S3
-        run: |
-          aws s3 sync --storage-class ONEZONE_IA --exact-timestamps --size-only ./xml-files_${{ env.yyyymm }}_${{ env.week_number }} s3://xml-topix-all/${{ env.yyyymm }}
