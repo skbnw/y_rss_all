@@ -1,4 +1,4 @@
-こname: Fetch Yahoo News All RSS Feed
+name: Fetch Yahoo News All RSS Feed
 
 on:
   schedule:
