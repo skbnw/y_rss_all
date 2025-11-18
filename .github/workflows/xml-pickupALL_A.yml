@@ -1,4 +1,4 @@
-name: Fetch Yahoo News All RSS Feed
+こname: Fetch Yahoo News All RSS Feed
 
 on:
   schedule:
@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
+        with:
+         fetch-depth: 1  # Shallow clone to reduce fetch time
 
       - name: Fetch Yahoo News RSS feeds
         run: |
