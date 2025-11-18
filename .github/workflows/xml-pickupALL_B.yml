@@ -1,6 +1,5 @@
 name: Fetch Yahoo News All RSS Feed
 
-
 on:
   schedule:
     - cron: '0 * * * *'  # Run 1 time every hour
@@ -11,7 +10,7 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
-         with:
+        with:
           fetch-depth: 1  # Shallow clone to reduce fetch time
 
       - name: Fetch Yahoo News RSS feeds
