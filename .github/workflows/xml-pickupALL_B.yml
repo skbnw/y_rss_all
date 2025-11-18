@@ -10,7 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
+        uses: actions/checkout@v2   
         uses: actions/checkout@v2
+         with:
+          fetch-depth: 1  # Shallow clone to reduce fetch time
 
       - name: Fetch Yahoo News RSS feeds
         run: |
