@@ -17,17 +17,16 @@ jobs:
 
       - name: Fetch Yahoo News RSS feeds
         run: |
-          # current_month=$(date +'%Y%m') # 使用されていないためコメントアウト
+          # フォルダ名に使用する日時情報を取得
           current_day_of_week=$(date +'%u') # 1 (月) - 7 (日)
-          current_week=$(date +'%Y%m_%W') # 1-51
-          # day_offset=$(( 7 - current_day_of_week )) # 使用されていないためコメントアウト
+          current_week=$(date +'%Y%m_%W') # ISO 8601に基づいた週番号
           current_time=$(date +'%Y%m%d_%H%M')
           
-          # current_weekに加えて、現在の日にちに応じてフォルダ名に調整が必要であれば調整してください
+          # フォルダ名を設定
           folder_name="xml-filesA_${current_week}"
           mkdir -p $folder_name
           
-          # RSSフィードを取得
+          # RSSフィードを並列で取得（&とwaitを使用）
           curl -s -o "${folder_name}/top-picks_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml &
           curl -s -o "${folder_name}/domestic_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/domestic.xml &
           curl -s -o "${folder_name}/world_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/world.xml &
@@ -35,8 +34,6 @@ jobs:
           
           # 全てのcurlコマンドの終了を待つ
           wait
-          
-          # ファイルのダウンロード遅延（sleep 3）は、並列処理（&とwait）を行うことで不要になるか短縮できます
 
       - name: Set Git Config
         run: |
@@ -54,19 +51,19 @@ jobs:
             echo "Changes detected. Proceeding with commit and push."
             git commit -m "Update XML files"
             
-            # --- 強固なプッシュロジック ---
-            # 1. プッシュ前にリモートの変更を取得
-            git fetch origin main
+            # --- 強固なプッシュロジック (shallow clone対応) ---
             
-            # 2. リモートの変更をローカルに統合
-            # --no-edit を付けてマージし、失敗した場合は rebase を試みる
-            if git merge origin/main --no-edit; then
-              echo "Merge successful."
-            else
-              echo "Merge failed, attempting rebase."
-              # rebase中に競合が発生するとアクションが停止します
-              git rebase origin/main
+            # 1. プッシュ前にリモートの変更を取得し、unshallow（履歴を完全化）を試みる
+            # fetch-depth: 1に対応するため、unshallowを試行し、失敗しても通常のfetchを行う
+            git fetch --unshallow origin main 2>/dev/null || git fetch origin main
+            
+            # 2. リモートの変更をローカルに統合（rebase優先）
+            # リベースを試行し、失敗した場合にのみマージを試みる
+            if git pull --rebase origin main; then
               echo "Rebase successful."
+            else
+              echo "Rebase failed, attempting merge."
+              git pull --no-edit origin main
             fi
             
             # 3. 統合された変更をプッシュ
