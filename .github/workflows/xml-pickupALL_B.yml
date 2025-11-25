@@ -53,7 +53,7 @@ jobs:
             echo "Changes detected. Proceeding with commit and push."
             git commit -m "Update XML files"
             
-            # --- 強固なプッシュロジック (Aと同じでOK) ---
+            # --- 強固なプッシュロジック (Aと同じロジックを適用) ---
             
             # 1. プッシュ前にリモートの変更を取得し、unshallow（履歴を完全化）を試みる
             git fetch --unshallow origin main 2>/dev/null || git fetch origin main
