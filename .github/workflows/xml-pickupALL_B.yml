@@ -11,26 +11,31 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
         with:
+          # Actions token to allow push
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 1  # Shallow clone to reduce fetch time
 
       - name: Fetch Yahoo News RSS feeds
         run: |
-          current_month=$(date +'%Y%m')
-          current_week=$(date +'%Y%m_%W') # 1-51
-          day_offset=$(( 7 - current_day_of_week ))
+          # current_month=$(date +'%Y%m') # 使用されていないためコメントアウト
+          current_day_of_week=$(date +'%u') # 1 (月) - 7 (日)
+          current_week=$(date +'%Y%m_%W') # ISO 8601に基づいた週番号
+          # day_offset=$(( 7 - current_day_of_week )) # 使用されていないためコメントアウト
           current_time=$(date +'%Y%m%d_%H%M')
+          
+          # フォルダ名を設定 (B固有の設定を維持)
           folder_name="xml-filesB_${current_week}"
           mkdir -p $folder_name
-          sleep 3
-          curl -o "${folder_name}/entertainment_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/entertainment.xml
-          sleep 3
-          curl -o "${folder_name}/sports_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/sports.xml
-          sleep 3
-          curl -o "${folder_name}/it_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/it.xml
-          sleep 3
-          curl -o "${folder_name}/local_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/local.xml
-          sleep 3
-          curl -o "${folder_name}/science_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/science.xml
+          
+          # RSSフィードを並列で取得 (B固有のカテゴリを維持)
+          curl -s -o "${folder_name}/entertainment_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/entertainment.xml &
+          curl -s -o "${folder_name}/sports_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/sports.xml &
+          curl -s -o "${folder_name}/it_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/it.xml &
+          curl -s -o "${folder_name}/local_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/local.xml &
+          curl -s -o "${folder_name}/science_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/science.xml &
+          
+          # 全てのcurlコマンドの終了を待つ
+          wait
 
       - name: Set Git Config
         run: |
@@ -40,7 +45,30 @@ jobs:
         
       - name: Commit and push XML files
         run: |
+          # 全ての新しいファイルをステージング
           git add .
-          git commit -m "Update XML files"
-          git push
+          
+          # 変更がある場合のみコミットとプッシュを実行
+          if ! git diff --staged --quiet; then
+            echo "Changes detected. Proceeding with commit and push."
+            git commit -m "Update XML files"
+            
+            # --- 強固なプッシュロジック (Aと同じでOK) ---
+            
+            # 1. プッシュ前にリモートの変更を取得し、unshallow（履歴を完全化）を試みる
+            git fetch --unshallow origin main 2>/dev/null || git fetch origin main
+            
+            # 2. リモートの変更をローカルに統合（rebase優先）
+            if git pull --rebase origin main; then
+              echo "Rebase successful."
+            else
+              echo "Rebase failed, attempting merge."
+              git pull --no-edit origin main
+            fi
+            
+            # 3. 統合された変更をプッシュ
+            git push origin main
+          else
+            echo "No changes to commit. Skipping commit and push."
+          fi
         working-directory: ${{ github.workspace }}
