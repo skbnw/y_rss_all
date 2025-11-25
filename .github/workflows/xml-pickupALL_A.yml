@@ -11,24 +11,32 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v2
         with:
+          # Actions token to allow push
+          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 1  # Shallow clone to reduce fetch time
 
       - name: Fetch Yahoo News RSS feeds
         run: |
-          current_month=$(date +'%Y%m')
+          # current_month=$(date +'%Y%m') # 使用されていないためコメントアウト
+          current_day_of_week=$(date +'%u') # 1 (月) - 7 (日)
           current_week=$(date +'%Y%m_%W') # 1-51
-          day_offset=$(( 7 - current_day_of_week ))
+          # day_offset=$(( 7 - current_day_of_week )) # 使用されていないためコメントアウト
           current_time=$(date +'%Y%m%d_%H%M')
+          
+          # current_weekに加えて、現在の日にちに応じてフォルダ名に調整が必要であれば調整してください
           folder_name="xml-filesA_${current_week}"
           mkdir -p $folder_name
-          sleep 3
-          curl -o "${folder_name}/top-picks_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml
-          sleep 3
-          curl -o "${folder_name}/domestic_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/domestic.xml
-          sleep 3
-          curl -o "${folder_name}/world_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/world.xml
-          sleep 3
-          curl -o "${folder_name}/business_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/business.xml
+          
+          # RSSフィードを取得
+          curl -s -o "${folder_name}/top-picks_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/top-picks.xml &
+          curl -s -o "${folder_name}/domestic_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/domestic.xml &
+          curl -s -o "${folder_name}/world_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/world.xml &
+          curl -s -o "${folder_name}/business_${current_time}.xml" https://news.yahoo.co.jp/rss/topics/business.xml &
+          
+          # 全てのcurlコマンドの終了を待つ
+          wait
+          
+          # ファイルのダウンロード遅延（sleep 3）は、並列処理（&とwait）を行うことで不要になるか短縮できます
 
       - name: Set Git Config
         run: |
@@ -38,7 +46,32 @@ jobs:
         
       - name: Commit and push XML files
         run: |
+          # 全ての新しいファイルをステージング
           git add .
-          git commit -m "Update XML files"
-          git push
+          
+          # 変更がある場合のみコミットとプッシュを実行
+          if ! git diff --staged --quiet; then
+            echo "Changes detected. Proceeding with commit and push."
+            git commit -m "Update XML files"
+            
+            # --- 強固なプッシュロジック ---
+            # 1. プッシュ前にリモートの変更を取得
+            git fetch origin main
+            
+            # 2. リモートの変更をローカルに統合
+            # --no-edit を付けてマージし、失敗した場合は rebase を試みる
+            if git merge origin/main --no-edit; then
+              echo "Merge successful."
+            else
+              echo "Merge failed, attempting rebase."
+              # rebase中に競合が発生するとアクションが停止します
+              git rebase origin/main
+              echo "Rebase successful."
+            fi
+            
+            # 3. 統合された変更をプッシュ
+            git push origin main
+          else
+            echo "No changes to commit. Skipping commit and push."
+          fi
         working-directory: ${{ github.workspace }}
